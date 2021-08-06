@@ -11,7 +11,7 @@ public class TestSector extends SectorI {
 	 * TestSector
 	 */
 	private static final long serialVersionUID = 1406703194600905463L;
-	private Plugin p;
+	private transient Plugin p;
 	
 	public void init(Plugin p) {
 		setName("TestSector");
@@ -22,6 +22,5 @@ public class TestSector extends SectorI {
 		Location l2 = new Location(over, -45, 90, 163);
 		
 		add(p.getServer().getConsoleSender(), l, l2);
-		println("d");
 	}
 }

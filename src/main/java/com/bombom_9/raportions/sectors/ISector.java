@@ -30,7 +30,7 @@ public abstract class ISector implements Logger1, Sector, Listener {
 	private Map<Location, Double> locations = Maps.newLinkedHashMap();
 	// effects Map에서 Value가 <code>true</code>인 경우, Inbound로 처리함. 
 	private Map<Effect, Boolean> effects = Maps.newConcurrentMap();
-	private SectorManager m;
+	private transient SectorManager m;
 	
 	private String name;
 	private boolean allowed; //enabled
@@ -115,7 +115,6 @@ public abstract class ISector implements Logger1, Sector, Listener {
 	}
 	
 	public void add(CommandSender cs, Location l, double... x) {
-		println("d");
 		double y = x.length == 0 ? 1 : x[0];
 		if(l == null || locations.keySet().contains(l)) {println("a"); return;}
 		onUpdate(cs, l);
@@ -127,7 +126,7 @@ public abstract class ISector implements Logger1, Sector, Listener {
 	}
 	
 	public void add(CommandSender cs, Location start, Location end, double... x) {
-		println("d");
+		
 		if(!start.getWorld().equals(end.getWorld())) {println("ad"); return;}
 		double y = x.length == 0 ? 1 : x[0];
 		
@@ -138,10 +137,13 @@ public abstract class ISector implements Logger1, Sector, Listener {
 		int b2 = end.getBlockY();
 		int b3 = end.getBlockZ();
 		
-		for(int i = a1; i <= b1; i++) {
-			for(int j = a3; j <= b3; j++) {
-				for(int l = a2; l <= b2; l++) {
-					println(i + "-" + l + "-" + j);
+		int i = a1 >= b1 ? b1 : a1;
+		int l = a2 >= b2 ? b2 : a2;
+		int j = a3 >= b3 ? b3 : a3;
+		
+		for(; i <= (a1 >= b1 ? a1 : b1); i++) {
+			for(; j <= (a3 >= b3 ? a3 : b3); j++) {
+				for(; l <= (a2 >= b2 ? a2 : b2); l++) {
 					add(cs, new Location(start.getWorld(), i, l, j), y);
 				}
 			}
