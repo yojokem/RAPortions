@@ -2,6 +2,7 @@ package com.bombom_9.raportions.sectors;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.bukkit.Location;
@@ -125,10 +126,10 @@ public abstract class ISector implements Logger1, Sector, Listener {
 		onAdd(cs, l);
 	}
 	
-	public void add(CommandSender cs, Location start, Location end, double... x) {
+	public void add(CommandSender cs, Location start, Location end, double... X) {
 		
 		if(!start.getWorld().equals(end.getWorld())) {println("ad"); return;}
-		double y = x.length == 0 ? 1 : x[0];
+		double Y = X.length == 0 ? 1 : X[0];
 		
 		int a1 = start.getBlockX();
 		int a2 = start.getBlockY();
@@ -141,13 +142,17 @@ public abstract class ISector implements Logger1, Sector, Listener {
 		int l = a2 >= b2 ? b2 : a2;
 		int j = a3 >= b3 ? b3 : a3;
 		
-		for(; i <= (a1 >= b1 ? a1 : b1); i++) {
-			for(; j <= (a3 >= b3 ? a3 : b3); j++) {
-				for(; l <= (a2 >= b2 ? a2 : b2); l++) {
-					add(cs, new Location(start.getWorld(), i, l, j), y);
-				}
-			}
-		}
+		println("초기 (" + i + ", " + l + ", " + j + ")");
+		println("말기 (" + (a1 >= b1 ? a1 : b1) + ", " + (a2 >= b2 ? a2 : b2) + ", " + (a3 >= b3 ? a3 : b3) + ")");
+		
+		IntStream.range(a1 >= b1 ? b1 : a1, a1 >= b1 ? a1 : b1)
+			.forEach(x -> 
+				IntStream.range(a3 >= b3 ? b3 : a3, a3 >= b3 ? a3 : b3)
+					.forEachOrdered(z ->
+						IntStream.range(a2 >= b2 ? b2 : a2, a2 >= b2 ? a2 : b2)
+						.forEachOrdered(y -> add(cs, new Location(start.getWorld(), x, y, z), Y))
+					)
+			);
 	}
 	
 	public void remove(CommandSender cs, Location l) {
