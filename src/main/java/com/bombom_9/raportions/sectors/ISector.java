@@ -41,30 +41,35 @@ public abstract class ISector implements Logger1, Sector, Listener {
 			if(!exceptions.contains(e.getPlayer())) {
 				//순간 판단
 				
-				/*
-				 * boolean inStart = locations.keySet().contains(e.getFrom()); boolean inEnd =
-				 * locations.keySet().contains(e.getTo());
-				 * 
-				 * boolean inbound = inStart && inEnd, intoout = (inStart == true) && (inEnd ==
-				 * false), outtoin = (inStart == false) && (inEnd == true), outbound = !inbound;
-				 * 
-				 * if(inbound || outtoin) { //is In effects.keySet().parallelStream() .filter(x
-				 * -> effects.get(x)) .forEach(x -> x.incur(e.getPlayer())); } else if(outbound
-				 * || intoout) { //is Out effects.keySet().parallelStream() .filter(x ->
-				 * !effects.get(x)) .forEach(x -> x.incur(e.getPlayer())); }
-				 */
+			
+				boolean inStart = locations.keySet().contains(e.getFrom()); boolean inEnd =
+				locations.keySet().contains(e.getTo());
+				
+				boolean inbound = inStart && inEnd, intoout = (inStart == true) && (inEnd ==
+				false), outtoin = (inStart == false) && (inEnd == true), outbound = !inbound;
+				
+				if(inbound || outtoin) { //is In
+					effects.keySet().parallelStream()
+						.filter(x -> effects.get(x)).forEach(x -> x.incur(e.getPlayer()));
+				} else if(outbound || intoout) { //is Out
+					effects.keySet().parallelStream()
+						.filter(x -> !effects.get(x))
+						.forEach(x -> x.incur(e.getPlayer()));
+				}
 			} else println("Exception occurred in Sector [" + name + "] within an exceptor " + e.getPlayer().getDisplayName());
 		}
 	}
 	
 	@EventHandler(priority = EventPriority.LOW)
 	public void onJoin(PlayerJoinEvent e) {
-		e.getPlayer().setHealth(e.getPlayer().getHealthScale());
+		if(locations.keySet().contains(e.getPlayer().getLocation()))
+			e.getPlayer().setHealth(e.getPlayer().getHealthScale());
 	}
 	
 	@EventHandler(priority = EventPriority.LOW)
 	public void onQuit(PlayerQuitEvent e) {
-		e.getPlayer().setHealth(e.getPlayer().getHealthScale());
+		if(locations.keySet().contains(e.getPlayer().getLocation()))
+			e.getPlayer().setHealth(e.getPlayer().getHealthScale());
 	}
 	
 	public void setManager(Manager m) {
@@ -73,6 +78,14 @@ public abstract class ISector implements Logger1, Sector, Listener {
 	
 	protected SectorManager getManager() {
 		return this.m;
+	}
+	
+	public void put(Effect e, boolean b) {
+		this.effects.put(e, b);
+	}
+	
+	public Map<Effect, Boolean> getEffects() {
+		return this.effects;
 	}
 	
 	public void setName(String n) {
@@ -101,14 +114,38 @@ public abstract class ISector implements Logger1, Sector, Listener {
 		this.allowed = false;
 	}
 	
-	public void add(CommandSender cs, Location l, double x) {
-		if(l == null || locations.keySet().contains(l)) return;
+	public void add(CommandSender cs, Location l, double... x) {
+		println("d");
+		double y = x.length == 0 ? 1 : x[0];
+		if(l == null || locations.keySet().contains(l)) {println("a"); return;}
 		onUpdate(cs, l);
 		
 		if(l != null && !locations.keySet().contains(l))
-			locations.put(l, x);
+			locations.put(l, y);
 		
 		onAdd(cs, l);
+	}
+	
+	public void add(CommandSender cs, Location start, Location end, double... x) {
+		println("d");
+		if(!start.getWorld().equals(end.getWorld())) {println("ad"); return;}
+		double y = x.length == 0 ? 1 : x[0];
+		
+		int a1 = start.getBlockX();
+		int a2 = start.getBlockY();
+		int a3 = start.getBlockZ();
+		int b1 = end.getBlockX();
+		int b2 = end.getBlockY();
+		int b3 = end.getBlockZ();
+		
+		for(int i = a1; i <= b1; i++) {
+			for(int j = a3; j <= b3; j++) {
+				for(int l = a2; l <= b2; l++) {
+					println(i + "-" + l + "-" + j);
+					add(cs, new Location(start.getWorld(), i, l, j), y);
+				}
+			}
+		}
 	}
 	
 	public void remove(CommandSender cs, Location l) {
